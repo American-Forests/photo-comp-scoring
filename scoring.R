@@ -13,7 +13,7 @@ read_excel_allsheets_except_last <- function(filename) {
   x
 }
 
-# this cleans up the individual sheets and adds categories to them
+# this cleans up the individual sheets and labels them with their categories 
 cleanup_helper <- function(name, ind) {
   current <- sf[[ind]][[name]]
   stored <- row_to_names(current, row_number = 1)
@@ -22,7 +22,7 @@ cleanup_helper <- function(name, ind) {
   stored
 }
 
-# this applies the helpers to all the excel files we have
+# this loops through all of the excel files and  cleans + stacks their sheets into a data frame
 cleanup <- function(dl, indie) {
   store <- lapply(names(dl), cleanup_helper, ind=indie)
   bind_rows(store)
