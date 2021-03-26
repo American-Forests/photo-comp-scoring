@@ -1,4 +1,4 @@
-# importing functions
+# importing libraries
 library(tidyverse)
 library(readxl)
 library(janitor)
@@ -18,6 +18,7 @@ cleanup_helper <- function(name, ind) {
   current <- sf[[ind]][[name]]
   stored <- row_to_names(current, row_number = 1)
   stored$category <- name
+  stored$judge_id <- ind
   stored
 }
 
@@ -29,10 +30,13 @@ cleanup <- function(dl, indie) {
 
 # grab the list of files
 fileList <- paste("data/", list.files(path="./data/", pattern=".xlsx"), sep="")
+
 # read in the list of files
 sf <- lapply(fileList, read_excel_allsheets_except_last)
-# extract dataframes from files
+
+# extract data frames from files
 sfc <- mapply(cleanup, sf,  indie=c(1,2), SIMPLIFY=F)
+
 # clean up some of the data in the files (rename fields, compute score, cleaned photo names)
 sfm <- bind_rows(sfc) %>%
   rename("photograph_name"="Photograph Name:", 
@@ -57,7 +61,7 @@ write.csv(sfm, "data/cleaned_scores.csv")
 
 # pull out the category winner
 cat_winner <- merge(aggregate(overall_score ~ category, data=sfm, max), sfm, all.X=T) %>%
-  select(-c(originality, technical_quality, artistic_merit, score)) %>%
+  select(-c(originality, technical_quality, artistic_merit, score, judge_id)) %>%
   unique()
 write.csv(cat_winner, "data/category_winners.csv")
 
