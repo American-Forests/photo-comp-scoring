@@ -35,7 +35,7 @@ fileList <- paste("data/", list.files(path="./data/", pattern=".xlsx"), sep="")
 sf <- lapply(fileList, read_excel_allsheets_except_last)
 
 # extract data frames from files
-sfc <- mapply(cleanup, sf,  indie=c(1,2), SIMPLIFY=F)
+sfc <- mapply(cleanup, sf,  indie=c(1,2,3,4,5,6), SIMPLIFY=F)
 
 # clean up some of the data in the files (rename fields, compute score, cleaned photo names)
 sfm <- bind_rows(sfc) %>%
@@ -47,13 +47,16 @@ sfm <- bind_rows(sfc) %>%
          technical_quality = as.numeric(technical_quality), 
          artistic_merit=as.numeric(artistic_merit)) %>%
   mutate(score= originality * .3 + technical_quality*.3 + artistic_merit*.4) %>%
-  mutate(photograph_name=str_remove_all(photograph_name, "\\*"))
+  mutate(photograph_name=str_remove_all(photograph_name, "\\*"))  %>%
+  select(-c("...5", "...7"))
 
 # drop unnecessary rows, compute the overall score of each photo
-sfm <- sfm[!(sfm$photograph_name=="I reordered this one - FYI"),] %>% 
+sfm <- sfm[!(sfm$photograph_name=="I reordered this one - FYI"),]
+sfm <- sfm[!(sfm$photograph_name=="Favorite Category! All very impressive!"),]
+sfm <- sfm[!(sfm$photograph_name==" These had the best captions by far!!"),] %>%
   drop_na() %>% 
   group_by(photograph_name) %>% 
-  mutate(overall_score = sum(score)) %>%    
+  mutate(overall_score = sum(score), num=n()) %>%    
   ungroup()
 
 # write winners out to files
